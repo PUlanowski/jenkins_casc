@@ -1,0 +1,34 @@
+1. Create docker image using Dockerfile
+docker build --tag jenkinscac docker/
+
+to purge all local images:
+
+docker image prune --all --force
+
+2. Tag docker image with artifact repo 
+
+SRC_IMG=15090181cc6a #actual build image hash
+
+docker tag $SRC_IMG us-central1-docker.pkg.dev/gcp101730-pulanowskisandbox/mentoring/jenkinscac
+
+3. Push image to artifact repo
+
+docker push us-central1-docker.pkg.dev/gcp101730-pulanowskisandbox/mentoring/jenkinscac
+
+4. terraform apply to push image from artifact repo to cloud run
+
+terraform apply
+
+TESTING
+
+docker run -itd -p 8080:8080 jenkinscac
+docker kill $(docker ps -q)
+docker rmi -f $(docker images -q)
+
+----
+CLOUD RUN ISSUE with memory limit (512M too small for Jenkins) fix
+gcloud run services update cloudrun-jenkinscac --memory 4G --cpu 4 
+#from logs utilization is 520M vs 512M provided
+
+https://cloud.google.com/run/docs/configuring/memory-limits?hl=en&_ga=2.266825290.-55462219.1658834237&_gac=1.24185160.1661851480.CjwKCAjw6raYBhB7EiwABge5KkJ724j-0wLrahCs1p_2oIdCf2l-s_wdoCXsbjpG4UG4wDqxPy5m4BoC_RwQAvD_BwE#command-line
+---
